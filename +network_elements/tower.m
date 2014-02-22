@@ -3,7 +3,6 @@ classdef tower < handle
     %   Detailed explanation goes here
     
     properties
-        scheduler
         planes
         preamble
         mapping
@@ -11,17 +10,17 @@ classdef tower < handle
         equalizer
         nr_tiles_dc
         nr_tiles_rl
+        max_delay
     end
     
     methods
         function obj = tower(config)
-            obj.scheduler = schedulers.scheduler_factory(config);
-            obj.scheduler.tower = obj;
-            obj.mapping = config.mapping;
-            obj.jitter = config.timing_jitter;
-            obj.equalizer = ones(config.FFT_size, 1);
+            obj.mapping                 = config.mapping;
+            obj.jitter                  = config.timing_jitter;
+            obj.equalizer               = ones(config.FFT_size, 1);
             obj.nr_tiles_dc             = config.nr_tiles_dc;
             obj.nr_tiles_rl             = config.nr_tiles_rl;
+            obj.max_delay               = config.max_delay;
         end
         
         function [nr_attached] =  attach_plane(obj, plane_id)
@@ -41,31 +40,38 @@ classdef tower < handle
         end
         
         function [received_datastream, sliced_signal] = receiver(obj, planes, snr_dB)
-            
+            % Calculate the sum signal as seen by the tower
             traces = [planes.trace];
             input_signal = sum(vertcat(traces.last_received_signal), 1);
+            
+            % Add additive white gaussian noise
             [input_signal, noise_power] = obj.awgn_channel_response(input_signal, snr_dB);
+            
             if strcmp(obj.jitter, 'on')
-                max_delay = 10;
-                s_power = norm(input_signal)^2/length(input_signal);
-                    deviation = sqrt(s_power/2);
-                    %input_signal = [input_signal, normrnd(0, deviation, 1, max_delay)+1j*normrnd(0, deviation, 1, max_delay) ];
-                    input_signal = [input_signal, zeros(1, max_delay)];
-                    timing_shift = randi([0 max_delay], 1, 1);
-                    input_signal = circshift(input_signal, [0, timing_shift]);
+                input_signal = obj.add_timing_jitter(input_signal);
             end
             
-                for i_ = 1:length(planes)
-                     
-                    [planes(i_).trace.last_received_data,...
-                        planes(i_).trace.last_received_sliced_signal]...
-                        = network_elements.tower.ofdm_receiver(input_signal,...
-                                                                obj.nr_tiles_dc,...
-                                                                obj.nr_tiles_rl,...
-                                                                obj, planes(i_),...
-                                                                planes(i_).side,...
-                                                                noise_power);
-                end
+            for i_ = 1:length(planes)
+                
+                [planes(i_).trace.last_received_data,...
+                    planes(i_).trace.last_received_sliced_signal]...
+                    = network_elements.tower.ofdm_receiver(input_signal,...
+                    obj.nr_tiles_dc,...
+                    obj.nr_tiles_rl,...
+                    obj, planes(i_),...
+                    planes(i_).side,...
+                    noise_power);
+            end
+        end
+        function [data_stream, sliced_signal] = slicer(obj, input_signal)
+            if obj.mapping.chosen == mapping.C4QAM
+                [data_stream, sliced_signal] = obj.slicer_4QAM(input_signal)
+            else
+                error('not implemented at the moment')
+                
+            end
+            
+            
         end
         function [data_stream, sliced_signal] = slicer_4QAM(obj, input_signal)
             sliced_signal = 1/sqrt(2)*...
@@ -77,11 +83,11 @@ classdef tower < handle
         
         function [output_stream, noise] = awgn_channel_response(obj, input_stream, snr_dB)
             % Since the SNR is defined over the bit energy, we need the
-            % fraction of the signal that actually carries bits. 
-            information_symbol_ratio = (38*2+48*4) * ... Nr data symbols per 2 tiles 
-                                        obj.nr_tiles_dc * ... Nr data tiles in dc frame 
-                                        obj.nr_tiles_rl / ... Nr tiles in one data frame 
-                                        length(input_stream);
+            % fraction of the signal that actually carries bits.
+            information_symbol_ratio = (38*2+48*4) * ... Nr data symbols per 2 tiles
+                obj.nr_tiles_dc * ... Nr data tiles in dc frame
+                obj.nr_tiles_rl / ... Nr tiles in one data frame
+                length(input_stream);
             
             % Right now, this is calculated as receive SNR. Therefore, The
             % received power is calculated:
@@ -95,6 +101,23 @@ classdef tower < handle
             
             noise_signal = normrnd(0, sqrt(noise/2), size(input_stream))+1j*normrnd(0, sqrt(noise/2), size(input_stream));
             output_stream = input_stream+noise_signal;
+        end
+        
+        function output_stream = add_timing_jitter(obj, input_stream)
+            max_delay = obj.max_delay; % Maximum allowed jitter
+            
+            % Expand vector by random noise of appropriate power, so the
+            % circular shift does not wrap the signal around 
+            s_power = norm(input_signal)^2/length(input_signal);
+            deviation = sqrt(s_power/2);
+            input_signal = [input_signal, normrnd(0, deviation, 1, max_delay)+ ... 
+                                       1j*normrnd(0, deviation, 1, max_delay) ];
+            % Generate jitter and shift. Note, it is not necessary to
+            % simulate twosided jitter, as this only amounts to a shift of
+            % the reference plane
+            timing_shift = randi([0 max_delay], 1, 1);
+            input_signal = circshift(input_signal, [0, timing_shift]);
+            
         end
     end
     

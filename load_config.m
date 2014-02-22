@@ -9,7 +9,8 @@ function config = load_config()
   config.target_nr_errors   = 100; % stop simulation after target number
   config.nr_planes          = 2;
   config.scheduler          = 'round robin';
-  config.timing_jitter     = 'on';
+  config.timing_jitter      = 'on';
+  config.max_delay          = 10;
   % Fixed configuration                                     
   config.channel_kind       = 'jakes';
   config.FFT_size           = 64;                                     
@@ -19,10 +20,12 @@ function config = load_config()
   config.guard_higher       = 6;
   config.nr_tiles_dc        = 2;
   config.nr_tiles_rl        = 2;
-  config.SNR_range_dB      = SNR_start_dB:...
+  config.SNR_range_dB       = SNR_start_dB:...
       (SNR_end_dB-SNR_start_dB)/SNR_steps_dB:...
         SNR_end_dB;
   
+  config.error_limit        = 10000;
+  config.loop_threshold     = 10000;
   % misc
   config.CP_time            = 17.6e-6; % s
   config.t_sampling         = 1.6e-6; % s

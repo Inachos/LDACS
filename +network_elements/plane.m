@@ -30,11 +30,11 @@ classdef plane < handle
     
     methods
         function obj = plane(config, tower, plane_id, side)
-            obj.tower   = tower;
-            obj.id      = plane_id;
+            obj.tower                   = tower;
+            obj.id                      = plane_id;
             tower.attach_plane(plane_id);
-            obj.channel = network_elements.channel(config, tower, plane_id);
-            obj.trace = network_elements.plane_trace(config, plane_id);
+            obj.channel                 = network_elements.channel(config, tower, plane_id);
+            obj.trace                   = network_elements.plane_trace(config, plane_id);
             obj.data_generation         = config.data_generation;
             obj.data_length             = config.data_length;
             obj.mapping                 = config.mapping;
@@ -60,6 +60,7 @@ classdef plane < handle
             
             switch obj.data_generation
                 case 'dummy'
+                    % This is only here for early testing
                     obj.trace.last_generated_data = obj.generate_dummy_data;
                     obj.trace.last_generated_signal = obj.generate_dummy_signal(obj.trace.last_generated_data);
                 case 'ofdm'

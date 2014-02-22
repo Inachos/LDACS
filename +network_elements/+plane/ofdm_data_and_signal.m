@@ -1,10 +1,12 @@
 function [ data_stream, ofdm_signal ] = ofdm_data_and_signal( nr_tiles__dc, nr_tiles_rl, plane, side)
-data_stream = [];
-ofdm_signal =[];
-alphabet = plane.mapping.C4QAM;
-P_l = [2 40 10 2 56 4 2 40 10 2 56 4];
-P_r = [4 56 2 10 40 2 4 56 2 10 40 2];
-frame = zeros(plane.FFT_size, 1);
+data_stream             = [];
+ofdm_signal             = [];
+alphabet                = plane.mapping.chosen;
+P_l                     = [2 40 10 2 56 4 2 40 10 2 56 4];
+P_r                     = [4 56 2 10 40 2 4 56 2 10 40 2];
+frame                   = zeros(plane.FFT_size, 1);
+
+% Side dependent stuff
 if strcmp(side, 'upper')
     P = P_r;
     P_ind = plane.pilot_positions_upper;
@@ -14,44 +16,59 @@ else
     P_ind = plane.pilot_positions_lower;
     papr_position = plane.papr_positions_lower;
 end
+
 for i_ = 0:nr_tiles__dc+nr_tiles_rl
     % the implementation does not respect the mapping order of the
     % data, but it is all random anyway
     if i_ == 0
+        % Preamble is fixed, calculate once, then always load
        if isempty(plane.preamble)
-           plane.preamble = generate_preamble(plane);
+           plane.preamble       = generate_preamble(plane);
            plane.tower.preamble = plane.preamble;
        end
+       
        ofdm_signal = plane.preamble;
+       
     else
+        
         for j_ = 1:length(plane.nr_papr_in_data)
-            frame = zeros(64, 1);
-            nr_control =plane.nr_papr_in_data(j_)+...
-                plane.nr_pilot_in_data(j_);
+            frame       = zeros(64, 1);
+            nr_control  = plane.nr_papr_in_data(j_)+...
+                             plane.nr_pilot_in_data(j_);
+                         
             [symb_par, data] = generate_parallel(plane.subcarrier_nr-...
-                nr_control, alphabet, plane);
+                                                    nr_control,...
+                                                    alphabet, plane);
+            % Generate symbols in the frequency grid
             switch side
                 case 'lower'
                     symb_par = [zeros(7, 1); symb_par];
                     symb_par = [symb_par; zeros(64-nr_control-length(symb_par), 1)];
                 case 'upper'
                     symb_par = [symb_par; zeros(6, 1)];
-                    symb_par = [zeros(64-nr_control-length(symb_par), 1); symb_par];
+                    symb_par = zeros(64-nr_control-length(symb_par), 1); symb_par];
             end
+            
+            % Generate pilots if necessary
             if plane.nr_pilot_in_data(j_) > 0
                 if j_ == 1
                     k = 1:2:12;
                 elseif j_ == 6
                     k = 2:2:12;
                 end
-                S = exp(1j*2*pi/64*P(k));
+                S               = exp(1j*2*pi/64*P(k));
                 frame(P_ind+33) = S;
                 frame(frame==0) = symb_par;
             else
                 frame(1:plane.FFT_size ~= (papr_position+33)) = symb_par;
             end
-            ofdm_signal_temp = sqrt(plane.FFT_size)*ifft(frame, plane.FFT_size).';
-            ofdm_signal = append_symbol(ofdm_signal, ofdm_signal_temp);
+            
+            % Apply unitary FFT and concatenate to one stream, including
+            % overlap
+            ofdm_signal_temp    = sqrt(plane.FFT_size)*ifft(frame, plane.FFT_size).';
+            ofdm_signal         = append_symbol(ofdm_signal, ofdm_signal_temp);
+            
+            % Move DC frame to DC
             t = 1:length(ofdm_signal);
             ofdm_signal = ofdm_signal.*exp(-1j*33*2*pi);
             
@@ -81,20 +98,26 @@ else
 end
 
 end
+
 function window = window()
-window = ones(1, 83);
-t = 1:8;
-window(1:8) =  1/2+1/2*cos(pi*(1+((t-1)/8)));
-window(end-7:end) =  1/2-1/2*cos(pi*(1+(t/8)));
+% Return the window for the symbol
+window              = ones(1, 83);
+t                   = 1:8;
+window(1:8)         =  1/2+1/2*cos(pi*(1+((t-1)/8)));
+window(end-7:end)   =  1/2-1/2*cos(pi*(1+(t/8)));
 
 end
+
 function [symb_par, data] = generate_parallel(nr_symbols, alphabet, plane)
-data = randi([0 1], 1,nr_symbols*log2(length(alphabet)));
-data_par = reshape(data, log2(length(alphabet)), nr_symbols, []);
-mapping_vector = (2.^(0:log2(length(alphabet))-1));
-symb_par = squeeze(mapping_vector(end:-1:1)*data_par)+1;
-symb_par = alphabet(symb_par);
+% Parallel data generation, irrespective of Modulation order (Gray mapping
+% is achieved in the correct index to symbol assignment in the config
+data            = randi([0 1], 1,nr_symbols*log2(length(alphabet)));
+data_par        = reshape(data, log2(length(alphabet)), nr_symbols, []);
+mapping_vector  = (2.^(0:log2(length(alphabet))-1));
+symb_par        = squeeze(mapping_vector(end:-1:1)*data_par)+1;
+symb_par        = alphabet(symb_par);
 end
+
 function preamble = generate_preamble(plane)
 preamble = [];
  P_AGC = [29 8 35 53 30 17 21 16 7 37 23 35 40 41 8 46 32 47 8 36 26 53 12 26 33 4 31 42 0 6 48 18 60 24 2 15 16 58 48 37 61 22 38 52 23 3 63 36 49 42];
