@@ -64,8 +64,8 @@ classdef tower < handle
             end
         end
         function [data_stream, sliced_signal] = slicer(obj, input_signal)
-            if obj.mapping.chosen == mapping.C4QAM
-                [data_stream, sliced_signal] = obj.slicer_4QAM(input_signal)
+            if obj.mapping.chosen == obj.mapping.C4QAM
+                [data_stream, sliced_signal] = obj.slicer_4QAM(input_signal);
             else
                 error('not implemented at the moment')
                 
@@ -108,15 +108,15 @@ classdef tower < handle
             
             % Expand vector by random noise of appropriate power, so the
             % circular shift does not wrap the signal around 
-            s_power = norm(input_signal)^2/length(input_signal);
+            s_power = norm(input_stream)^2/length(input_stream);
             deviation = sqrt(s_power/2);
-            input_signal = [input_signal, normrnd(0, deviation, 1, max_delay)+ ... 
+            input_stream = [input_stream, normrnd(0, deviation, 1, max_delay)+ ... 
                                        1j*normrnd(0, deviation, 1, max_delay) ];
             % Generate jitter and shift. Note, it is not necessary to
             % simulate twosided jitter, as this only amounts to a shift of
             % the reference plane
-            timing_shift = randi([0 max_delay], 1, 1);
-            input_signal = circshift(input_signal, [0, timing_shift]);
+            timing_shift = randi([0 max_delay], 1, 1)
+            output_stream = circshift(input_stream, [0, timing_shift]);
             
         end
     end

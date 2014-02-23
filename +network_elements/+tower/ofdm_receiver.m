@@ -44,6 +44,9 @@ for i_ = 1:nr_tiles_per_dc+nr_tiles_rl
         current_signal_no_cp = current_signal(12:75);
         current_signal_fft = fft(current_signal_no_cp, plane.FFT_size)/sqrt(plane.FFT_size);
         
+        if j_ == 1
+           % second_signal_fft = input_signal(1+offset
+        end
         % Mask where to find Data
         mask = ones(1, 64);
         mask(1:7) = 0;
@@ -78,11 +81,11 @@ function timing_correction = recover_timing(input_stream)
 % Schmidl Cox Algorithm
 
 if 1
-    search_offset       = -6+76*[1 2 3 4 5]; % where to start looking
+    search_offset       = -6+75*[1 2 3 4 5]; % where to start looking
     time_offset         = 32;
     window_length       = 31;
     search_length       = 50;
-    aim_correction      = 5+76*[1 2 3 4 5]; % empirically found
+    aim_correction      = 11+75*[1 2 3 4 5]; % empirically found
 else
     search_offset = 76;
     window_length = 83;
@@ -109,7 +112,53 @@ end
 timing_correction = min(max(round(mean(max_ind-aim_correction)), 0), 10);
 end
 
+function adapt_equalizer_v2(plane, tower, current_signal_fft, current_frame, side)
 
+% Construct the pilots as they should be
+
+P_l         = [2 40 10 2 56 4 2 40 10 2 56 4];
+P_r         = [4 56 2 10 40 2 4 56 2 10 40 2];
+frame       = zeros(plane.FFT_size, 1);
+
+if strcmp(side, 'upper')
+    P       = P_r;
+    P_ind   = plane.pilot_positions_upper;
+else
+    P       = P_l;
+    P_ind   = plane.pilot_positions_lower;
+end
+
+if current_frame == 1
+    k = 1:2:12;
+elseif current_frame == 6
+    k = 2:2:12;
+end
+
+S = exp(1j*2*pi/64*P(k));
+frame(P_ind+33) = S;
+frame(frame==0) = 0;
+%-------------------------------------------------------------
+% Now the pilots are divided by the received symbols, according to: 
+% Y_k   = H_k*S_k+Z_k 
+% S_hat = eq*Y_k 
+% eq    = (Y_k/S_k)^-1 = (H_k +Z_k/S_k)^-1
+% Subcarriers without Pilots are set to zero
+eq_pilots_temp  = frame.'./current_signal_fft;
+eq_pilots       = eq_pilots_temp(eq_pilots_temp~=0); % only use pilot symbols
+
+% Interpolate for other subcarriers: 
+P_ind_zeroed    = P_ind-min(P_ind);              % Shift P_ind so 0 is the smallest
+interp_ind      = P_ind_zeroed/max(P_ind_zeroed);% Show original indices as points \in [0, 1]
+new_ind         = (P_ind_zeroed(1):P_ind_zeroed(end)) / ... % Indices of ALL data carrying subcarriers as 
+                                        max(P_ind_zeroed);  % scaled to [0,1]
+% Interpolate known equalizers accross subcarriers, using 'spline'
+% configuration: 
+equalizer_interpolated   = interp1(interp_ind.', eq_pilots.', new_ind.', 'spline');
+
+% Adapt the stored equalizers of the tower
+tower.equalizer(P_ind(1)+33:P_ind(end)+33) = equalizer_interpolated;
+
+end
 function adapt_equalizer(plane, tower, current_signal_fft, current_frame, side)
 
 % Construct the pilots as they should be

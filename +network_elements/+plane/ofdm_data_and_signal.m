@@ -46,7 +46,7 @@ for i_ = 0:nr_tiles__dc+nr_tiles_rl
                     symb_par = [symb_par; zeros(64-nr_control-length(symb_par), 1)];
                 case 'upper'
                     symb_par = [symb_par; zeros(6, 1)];
-                    symb_par = zeros(64-nr_control-length(symb_par), 1); symb_par];
+                    symb_par = [zeros(64-nr_control-length(symb_par), 1); symb_par];
             end
             
             % Generate pilots if necessary
