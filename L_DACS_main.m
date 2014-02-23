@@ -1,5 +1,5 @@
 % L_DACS_main
-%clear all
+clear all
 close all
 
 % Load the configuration

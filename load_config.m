@@ -1,8 +1,8 @@
 function config = load_config()
   % Set variable data
 
-  SNR_start_dB      = 20;
-  SNR_steps_dB      = 10;
+  SNR_start_dB      = 0;
+  SNR_steps_dB      = 15;
   SNR_end_dB        = 30;
   
   config.max_iterations_per_snr = 1e6;
@@ -32,8 +32,14 @@ function config = load_config()
   config.subcarrier_spacing = 9.765625e3; % Hz
   config.data_generation    = 'ofdm';
   config.data_length        = 1e5;
-
-  mapping.C4QAM       = [1+1j; 1 - 1j;-1 + 1j; -1 - 1j]/sqrt(2);
+  base_pattern        = [1+1j; 1 - 1j;-1 + 1j; -1 - 1j];
+  mapping.C4QAM       = base_pattern/sqrt(2);
+  offset              = [2+2j];
+  base_pattern_16     = base_pattern+offset;
+  mapping.C16QAM      = [base_pattern_16;...
+                        conj(base_pattern_16);...
+                        -conj(base_pattern_16);...
+                        -base_pattern_16;]/sqrt(10);
   mapping.CBPSK       = [-1; 1];
   mapping.chosen      = mapping.C4QAM;
             % mapping    00     01      10       11

@@ -45,7 +45,7 @@ for i_ = 1:nr_tiles_per_dc+nr_tiles_rl
         current_signal_fft = fft(current_signal_no_cp, plane.FFT_size)/sqrt(plane.FFT_size);
         
         if j_ == 1
-           % second_signal_fft = input_signal(1+offset
+            % second_signal_fft = input_signal(1+offset
         end
         % Mask where to find Data
         mask = ones(1, 64);
@@ -56,7 +56,13 @@ for i_ = 1:nr_tiles_per_dc+nr_tiles_rl
             mask(plane.pilot_positions_upper+33) = 0;
             
             % Use pilots to adapt the equalizer
-            adapt_equalizer(plane, tower, current_signal_fft, j_, side)
+            if j_==1 && 1
+                second_signal_no_cp = input_signal(12+5*75+offset:11+6*75+offset);
+                second_signal_fft = fft(second_signal_no_cp, plane.FFT_size)/sqrt(plane.FFT_size);
+                adapt_equalizer_v2(plane, tower, current_signal_fft, second_signal_fft, side);
+            elseif 0
+                adapt_equalizer(plane, tower, current_signal_fft, j_, side);
+            end
         else
             mask(plane.papr_positions_lower+33) = 0;
             mask(plane.papr_positions_upper+33) = 0;
@@ -68,7 +74,7 @@ for i_ = 1:nr_tiles_per_dc+nr_tiles_rl
         end
         
         % Equalize, slice and demap
-        current_signal_fft                  = tower.equalizer.'.*current_signal_fft;
+        current_signal_fft                  = tower.equalizer(:, j_).'.*current_signal_fft;
         [data_current,...
             current_signal_fft(logical(mask))] = tower.slicer(current_signal_fft(logical(mask)));
         received_datastream                 = [received_datastream data_current];
@@ -100,10 +106,10 @@ for jj = 1:length(search_offset)
         
         ind_off     = ii+time_offset;
         P(ii, jj)   = input_stream(ind_off:ind_off+window_length)*...
-                                        input_stream(ii:ii+window_length)';
+            input_stream(ii:ii+window_length)';
         R(ii, jj)   = input_stream(ind_off:ind_off+window_length)*...
-                                input_stream(ind_off:ind_off+window_length)';
-                            
+            input_stream(ind_off:ind_off+window_length)';
+        
         M(ii, jj)   = abs(P(ii, jj))^2 / R(ii, jj)^2;
         
     end
@@ -112,7 +118,7 @@ end
 timing_correction = min(max(round(mean(max_ind-aim_correction)), 0), 10);
 end
 
-function adapt_equalizer_v2(plane, tower, current_signal_fft, current_frame, side)
+function adapt_equalizer_v2(plane, tower, current_signal_fft, second_signal_fft, side)
 
 % Construct the pilots as they should be
 
@@ -127,38 +133,45 @@ else
     P       = P_l;
     P_ind   = plane.pilot_positions_lower;
 end
-
-if current_frame == 1
-    k = 1:2:12;
-elseif current_frame == 6
-    k = 2:2:12;
+for ind = 1:2
+    if ind == 1
+        signal = current_signal_fft;
+        k = 1:2:12;
+    elseif ind == 2
+        signal = second_signal_fft;
+        k = 2:2:12;
+    end
+    
+    S = exp(1j*2*pi/64*P(k));
+    frame(P_ind+33) = S;
+    frame(frame==0) = 0;
+    %-------------------------------------------------------------
+    % Now the pilots are divided by the received symbols, according to:
+    % Y_k   = H_k*S_k+Z_k
+    % S_hat = eq*Y_k
+    % eq    = (Y_k/S_k)^-1 = (H_k +Z_k/S_k)^-1
+    % Subcarriers without Pilots are set to zero
+    eq_pilots_temp  = frame.'./signal;
+    eq_pilots       = eq_pilots_temp(eq_pilots_temp~=0); % only use pilot symbols
+    
+    % Interpolate for other subcarriers:
+    P_ind_zeroed    = P_ind-min(P_ind);              % Shift P_ind so 0 is the smallest
+    interp_ind      = P_ind_zeroed/max(P_ind_zeroed);% Show original indices as points \in [0, 1]
+    new_ind         = (P_ind_zeroed(1):P_ind_zeroed(end)) / ... % Indices of ALL data carrying subcarriers as
+        max(P_ind_zeroed);  % scaled to [0,1]
+    % Interpolate known equalizers accross subcarriers, using 'spline'
+    % configuration:
+    equalizer_interpolated_f(:, ind)   = interp1(interp_ind.', eq_pilots.', new_ind.', 'spline');
+end
+for jj = 1:size(equalizer_interpolated_f, 1)
+    equalizer_interpolated(jj, :) = interp1((0:1)', equalizer_interpolated_f(jj, :).', (0:1/5:1)', 'linear');
+    % Adapt the stored equalizers of the tower
+    
+    
+end
+tower.equalizer(P_ind(1)+33:P_ind(end)+33, :) = equalizer_interpolated;
 end
 
-S = exp(1j*2*pi/64*P(k));
-frame(P_ind+33) = S;
-frame(frame==0) = 0;
-%-------------------------------------------------------------
-% Now the pilots are divided by the received symbols, according to: 
-% Y_k   = H_k*S_k+Z_k 
-% S_hat = eq*Y_k 
-% eq    = (Y_k/S_k)^-1 = (H_k +Z_k/S_k)^-1
-% Subcarriers without Pilots are set to zero
-eq_pilots_temp  = frame.'./current_signal_fft;
-eq_pilots       = eq_pilots_temp(eq_pilots_temp~=0); % only use pilot symbols
-
-% Interpolate for other subcarriers: 
-P_ind_zeroed    = P_ind-min(P_ind);              % Shift P_ind so 0 is the smallest
-interp_ind      = P_ind_zeroed/max(P_ind_zeroed);% Show original indices as points \in [0, 1]
-new_ind         = (P_ind_zeroed(1):P_ind_zeroed(end)) / ... % Indices of ALL data carrying subcarriers as 
-                                        max(P_ind_zeroed);  % scaled to [0,1]
-% Interpolate known equalizers accross subcarriers, using 'spline'
-% configuration: 
-equalizer_interpolated   = interp1(interp_ind.', eq_pilots.', new_ind.', 'spline');
-
-% Adapt the stored equalizers of the tower
-tower.equalizer(P_ind(1)+33:P_ind(end)+33) = equalizer_interpolated;
-
-end
 function adapt_equalizer(plane, tower, current_signal_fft, current_frame, side)
 
 % Construct the pilots as they should be
@@ -185,24 +198,24 @@ S = exp(1j*2*pi/64*P(k));
 frame(P_ind+33) = S;
 frame(frame==0) = 0;
 %-------------------------------------------------------------
-% Now the pilots are divided by the received symbols, according to: 
-% Y_k   = H_k*S_k+Z_k 
-% S_hat = eq*Y_k 
+% Now the pilots are divided by the received symbols, according to:
+% Y_k   = H_k*S_k+Z_k
+% S_hat = eq*Y_k
 % eq    = (Y_k/S_k)^-1 = (H_k +Z_k/S_k)^-1
 % Subcarriers without Pilots are set to zero
 eq_pilots_temp  = frame.'./current_signal_fft;
 eq_pilots       = eq_pilots_temp(eq_pilots_temp~=0); % only use pilot symbols
 
-% Interpolate for other subcarriers: 
+% Interpolate for other subcarriers:
 P_ind_zeroed    = P_ind-min(P_ind);              % Shift P_ind so 0 is the smallest
 interp_ind      = P_ind_zeroed/max(P_ind_zeroed);% Show original indices as points \in [0, 1]
-new_ind         = (P_ind_zeroed(1):P_ind_zeroed(end)) / ... % Indices of ALL data carrying subcarriers as 
-                                        max(P_ind_zeroed);  % scaled to [0,1]
+new_ind         = (P_ind_zeroed(1):P_ind_zeroed(end)) / ... % Indices of ALL data carrying subcarriers as
+    max(P_ind_zeroed);  % scaled to [0,1]
 
 % Interpolate known equalizers accross subcarriers, using 'spline'
-% configuration: 
+% configuration:
 equalizer_interpolated   = interp1(interp_ind.', eq_pilots.', new_ind.', 'spline');
 
 % Adapt the stored equalizers of the tower
-tower.equalizer(P_ind(1)+33:P_ind(end)+33) = equalizer_interpolated;
+tower.equalizer(P_ind(1)+33:P_ind(end)+33, :) = kron(ones(1,6), equalizer_interpolated);
 end

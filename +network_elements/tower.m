@@ -17,7 +17,7 @@ classdef tower < handle
         function obj = tower(config)
             obj.mapping                 = config.mapping;
             obj.jitter                  = config.timing_jitter;
-            obj.equalizer               = ones(config.FFT_size, 1);
+            obj.equalizer               = ones(config.FFT_size, 6);
             obj.nr_tiles_dc             = config.nr_tiles_dc;
             obj.nr_tiles_rl             = config.nr_tiles_rl;
             obj.max_delay               = config.max_delay;
@@ -80,6 +80,12 @@ classdef tower < handle
             data_mat = [floor(alphabet_ind./2);mod(alphabet_ind, 2) ];
             data_stream = reshape(data_mat, 1, []);
         end
+        function [data_stream, sliced_signal] = slicer_16QAM(obj, input_signal)
+            
+            
+            
+            
+        end
         
         function [output_stream, noise] = awgn_channel_response(obj, input_stream, snr_dB)
             % Since the SNR is defined over the bit energy, we need the
@@ -115,7 +121,7 @@ classdef tower < handle
             % Generate jitter and shift. Note, it is not necessary to
             % simulate twosided jitter, as this only amounts to a shift of
             % the reference plane
-            timing_shift = randi([0 max_delay], 1, 1)
+            timing_shift = randi([0 max_delay], 1, 1);
             output_stream = circshift(input_stream, [0, timing_shift]);
             
         end
