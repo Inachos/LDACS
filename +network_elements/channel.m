@@ -49,7 +49,7 @@ classdef channel < handle
         
         function pdp  = exponential_pdp(obj)
            tau_max = 2;
-           pdp = exp(-(0:tau_max));
+           pdp = exp(-(-0:tau_max));
            pdp = sqrt(pdp)/norm(pdp);
             
         end
@@ -75,7 +75,7 @@ classdef channel < handle
             if exist(full_filename, 'file') == 2
                 load(full_filename, 'trace');
             else
-                trace = channel.jakes;
+                trace = channel.jakes_2;
                 save(full_filename, 'trace');
             end
             trace = trace*sqrt(length(trace))/norm(trace);

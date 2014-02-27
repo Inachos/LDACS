@@ -10,10 +10,10 @@ max_iterations      = LDACS_config.max_iterations_per_snr;
 SNR_steps_dB        = LDACS_config.SNR_range_dB;
 
 % Adaptions
-LDACS_config.channel_kind   = 'full'; % 'pdp', 'jakes', 'full' (=jakes+pdp), 'awgn'
-LDACS_config.timing_jitter  = 'on';
-LDACS_config.error_limit    = 10000;
-LDACS_config.loop_threshold = 10000;
+LDACS_config.channel_kind   = 'pdp'; % 'pdp', 'jakes', 'full' (=jakes+pdp), 'awgn'
+LDACS_config.timing_jitter  = 'off';
+LDACS_config.error_limit    = 5000;
+LDACS_config.loop_threshold = 5000;
 
 % Instance the elements of the network
 display('Instancing tower and scheduler...')
@@ -28,6 +28,7 @@ planes              = network_elements.planes_factory(LDACS_config, tower);
 %----------------------------------------------------------
 display('Entering main loop now')
 total = 0;
+
 for snr_ = 1:length(SNR_steps_dB)
     % Visual output
     fprintf('%s',strcat('SNR:   ',num2str(SNR_steps_dB(snr_)), 'dB'))
