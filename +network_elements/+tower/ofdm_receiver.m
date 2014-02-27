@@ -90,7 +90,7 @@ if 1
     search_offset       = 3+75*[1 2 3 4 5]; % where to start looking
     time_offset         = 32;
     window_length       = 31;
-    search_length       = 50;
+    search_length       = 35;
     aim_correction      = 11+75*[1 2 3 4 5]; % empirically found
 else
     search_offset = 76;
@@ -116,7 +116,9 @@ for jj = 1:length(search_offset)
     [max_val(jj), max_ind(jj)] = max(M(:, jj));
 end
 offset_corrected_ind =max_ind-aim_correction;
-timing_correction = min(max(round(mean(offset_corrected_ind)), 0), 15);
+ W = sum(M.^2, 1);
+ W_norm = W/sum(W);
+timing_correction = min(max(round(offset_corrected_ind*W_norm'), 0), 15);
 end
 
 function adapt_equalizer_v2(plane, tower, current_signal_fft, second_signal_fft, side)

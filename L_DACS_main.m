@@ -1,20 +1,25 @@
 % L_DACS_main
 clear all
 close all
+kinds = {'awgn', 'pdp', 'jakes', 'full'};
+jitter = {'on', 'off'};
 
+for kin = 1:length(kinds)
+    for jit = 1:length(jitter)
 % Load the configuration
 display('Loading configuration')
-LDACS_config        = load_config()
+LDACS_config        = load_config();
 target_nr_errors    = LDACS_config.target_nr_errors;
 max_iterations      = LDACS_config.max_iterations_per_snr;
 SNR_steps_dB        = LDACS_config.SNR_range_dB;
 
 % Adaptions
-LDACS_config.channel_kind   = 'pdp'; % 'pdp', 'jakes', 'full' (=jakes+pdp), 'awgn'
-LDACS_config.timing_jitter  = 'off';
-LDACS_config.error_limit    = 5000;
-LDACS_config.loop_threshold = 5000;
+LDACS_config.channel_kind   = kinds{kin}; % 'pdp', 'jakes', 'full' (=jakes+pdp), 'awgn'
+LDACS_config.timing_jitter  = jitter{jit};
+LDACS_config.error_limit    = 20000;
+LDACS_config.loop_threshold = 20000;
 
+LDACS_config
 % Instance the elements of the network
 display('Instancing tower and scheduler...')
 tower               = network_elements.tower(LDACS_config);
@@ -83,4 +88,14 @@ for pl_ = 1:length(planes)
     ylabel('BER')
     grid on
     hold off
+    
+    sim.plane = pl_;
+    sim.x = SNR_steps_dB;
+    sim.y = BER;
+    sim.jitter = LDACS_config.timing_jitter;
+    sim.kind  = LDCAS_config.channel_kind;
+    full_filename = fullfile('results', strcat(LDCAS_config.channel_kind, '_jitter_', LDACS_config.timing_jitter, 'plane_', num2str(pl_), '.mat'));
+    save(full_filename, 'sim');
+end
+    end
 end

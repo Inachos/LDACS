@@ -60,7 +60,7 @@ classdef channel < handle
             pointer = obj.small_scale_pointer;
             if pointer+5000>obj.small_scale_len
                 obj.small_scale_counter = obj.small_scale_counter + 1;
-                display('calculating additional Rayleigh trace')
+                fprintf('*')
                 obj.calculate_small_scale_fading;
                 obj.small_scale_pointer = 1;
                 pointer = 1;
