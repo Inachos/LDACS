@@ -66,6 +66,7 @@ for i_ = 0:nr_tiles__dc+nr_tiles_rl
             % Apply unitary FFT and concatenate to one stream, including
             % overlap
             ofdm_signal_temp    = sqrt(plane.FFT_size)*ifft(frame, plane.FFT_size).';
+            ofdm_signal_temp    = network_elements.plane.reduce_papr(ofdm_signal_temp, papr_position);
             ofdm_signal         = append_symbol(ofdm_signal, ofdm_signal_temp);
             
             % Move DC frame to DC

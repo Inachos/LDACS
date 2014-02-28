@@ -20,7 +20,7 @@ F = [B2 B3];
 d = fdesign.arbmag('N,F,A', N, F, A);
 Hd = design(d, 'freqsamp', 'systemObject',true);
 noise_white = normrnd(0, 1/sqrt(2), 1, 1000000)+1j*normrnd(0, 1/sqrt(2), 1, 1000000);
-display('filter fading')
+fprintf('|')
 noise_colored = filtfilt(Hd.Numerator,1, noise_white);
 %small_scale_fading_trace = noise_colored(2:2:end).*exp(-1j*pi.*(1:length(noise_colored(2:2:end))));
 small_scale_fading_trace = noise_colored;
