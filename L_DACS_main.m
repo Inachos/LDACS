@@ -1,8 +1,8 @@
 % L_DACS_main
         clear all
 close all
-%kinds = {'awgn', 'pdp', 'jakes', 'full'};
-kinds = {'jakes'}
+kinds = {'awgn', 'pdp', 'jakes', 'full'};
+%kinds = {'jakes', 'full', 'awgn', 'pdp'}
 jitter = {'on', 'off'};
 
 for kin = 1:length(kinds)
@@ -19,8 +19,8 @@ for kin = 1:length(kinds)
         % Adaptions
         LDACS_config.channel_kind   = kinds{kin}; % 'pdp', 'jakes', 'full' (=jakes+pdp), 'awgn'
         LDACS_config.timing_jitter  = jitter{jit};
-        LDACS_config.error_limit    = 10000;
-        LDACS_config.loop_threshold = 10000;
+        LDACS_config.error_limit    = 20000;
+        LDACS_config.loop_threshold = 20000;
         
         LDACS_config
         % Instance the elements of the network
@@ -84,7 +84,6 @@ for kin = 1:length(kinds)
             clear BER
             cur_trace = planes(pl_).trace;
             BER = cur_trace.symbol_error_vector(:,2)./cur_trace.symbol_error_vector(:,1);
-            figure
             semilogy(SNR_steps_dB, BER);
             title(sprintf('Plane %ld', pl_))
             xlabel('SNR [dB]')
