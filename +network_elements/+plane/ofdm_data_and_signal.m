@@ -69,16 +69,17 @@ for i_ = 0:nr_tiles__dc+nr_tiles_rl
             ofdm_signal_temp    = network_elements.plane.reduce_papr(ofdm_signal_temp, papr_position);
             ofdm_signal         = append_symbol(ofdm_signal, ofdm_signal_temp);
             
-            % Move DC frame to DC
-            t = 1:length(ofdm_signal);
-            ofdm_signal = ofdm_signal.*exp(-1j*33*2*pi);
-            
+
             
             data_stream = [data_stream data];
         end
     end
-end
 
+            
+end
+                % Move DC frame to DC
+            t = 1:length(ofdm_signal);
+            ofdm_signal = ofdm_signal.*exp(-1j*pi.*t);
 
 end
 

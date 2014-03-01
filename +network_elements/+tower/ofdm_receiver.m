@@ -5,7 +5,8 @@ function [received_datastream, sliced_signal ] = ofdm_receiver( ...
     tower, plane,...
     side, noise_power)
 
-
+             t = 1:length(input_signal);
+            input_signal = input_signal.*exp(1j*pi.*t);
 received_datastream = [];
 sliced_signal       = [];
 timing_recovery     = 4;
