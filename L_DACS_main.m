@@ -1,10 +1,10 @@
 % L_DACS_main
         clear all
 close all
-kinds = {'awgn', 'pdp', 'jakes', 'full'};
-%kinds = {'jakes', 'full', 'awgn', 'pdp'}
+kinds = {'jakes', 'full'};
+%kinds = {'awgn'}
 jitter = {'on', 'off'};
-
+%jitter = {'on'}
 for kin = 1:length(kinds)
     for jit = 1:length(jitter)
         clear planes
@@ -20,7 +20,7 @@ for kin = 1:length(kinds)
         LDACS_config.channel_kind   = kinds{kin}; % 'pdp', 'jakes', 'full' (=jakes+pdp), 'awgn'
         LDACS_config.timing_jitter  = jitter{jit};
         LDACS_config.error_limit    = 20000;
-        LDACS_config.loop_threshold = 20000;
+        LDACS_config.loop_threshold = 5000;
         
         LDACS_config
         % Instance the elements of the network
@@ -85,7 +85,7 @@ for kin = 1:length(kinds)
             cur_trace = planes(pl_).trace;
             BER = cur_trace.symbol_error_vector(:,2)./cur_trace.symbol_error_vector(:,1);
             semilogy(SNR_steps_dB, BER);
-            title(sprintf('Plane %ld', pl_))
+
             xlabel('SNR [dB]')
             ylabel('BER')
             grid on
@@ -96,8 +96,11 @@ for kin = 1:length(kinds)
             sim.y = BER;
             sim.jitter = LDACS_config.timing_jitter;
             sim.kind  = LDACS_config.channel_kind;
-            full_filename = fullfile('results', strcat(LDACS_config.channel_kind, '_jitter_', LDACS_config.timing_jitter, '_plane_', num2str(pl_), '.mat'));
+            name = strcat(LDACS_config.channel_kind, '_jitter_', LDACS_config.timing_jitter);
+            filename = strcat(name, '_plane_', num2str(pl_), '.mat');
+            full_filename = fullfile('results', filename);
             save(full_filename, 'sim');
+                        title(full_filename)
         end
         hold off
     end

@@ -31,10 +31,10 @@ classdef channel < handle
         function output_stream = response(obj, input_stream)
             switch obj.channel_kind;
                 case {'dummy', 'awgn'}
-                    output_stream = obj.dummy_channel_response(input_stream);
+                    output_stream = filter([1 0 0], 1, obj.dummy_channel_response(input_stream));
 
                 case 'pdp'
-                     output_stream = conv(input_stream, obj.exponential_pdp);
+                     output_stream = filter(obj.exponential_pdp,1, input_stream);
                 case 'jakes'
                      output_stream = obj.jakes(input_stream);
                 case 'full'
@@ -49,8 +49,8 @@ classdef channel < handle
         
         function pdp  = exponential_pdp(obj)
            tau_max = 2;
-           pdp = exp(-(-0:tau_max));
-           pdp = sqrt(pdp)/norm(pdp);
+           pdp = exp(-(0:tau_max));
+           pdp = sqrt(pdp.^2/norm(pdp)^2);
             
         end
         

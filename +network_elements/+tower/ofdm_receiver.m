@@ -5,7 +5,7 @@ function [received_datastream, sliced_signal ] = ofdm_receiver( ...
     tower, plane,...
     side, noise_power)
 
-             t = 1:length(input_signal);
+            t = 1:length(input_signal);
             input_signal = input_signal.*exp(1j*pi.*t);
 received_datastream = [];
 sliced_signal       = [];
@@ -36,7 +36,12 @@ end
 for i_ = 1:nr_tiles_per_dc+nr_tiles_rl
     for j_ = 1:length(plane.nr_papr_in_data)
         % Where does the current frame start:
-        offset = ((i_)*6+(j_-1))*75+timing_recovery;
+        switch plane.channel.channel_kind
+            case {'full', 'pdp'}
+            offset = ((i_)*6+(j_-1))*75+timing_recovery+3;
+            otherwise
+            offset = ((i_)*6+(j_-1))*75+timing_recovery;
+        end
         
         % Filter out current signal
         current_signal = input_signal(1+offset:75+offset);

@@ -21,6 +21,7 @@ classdef tower < handle
             obj.nr_tiles_dc             = config.nr_tiles_dc;
             obj.nr_tiles_rl             = config.nr_tiles_rl;
             obj.max_delay               = config.max_delay;
+
         end
         
         function [nr_attached] =  attach_plane(obj, plane_id)
@@ -47,10 +48,8 @@ classdef tower < handle
             % Add additive white gaussian noise
             [input_signal, noise_power] = obj.awgn_channel_response(input_signal, snr_dB);
             
-            if strcmp(obj.jitter, 'on')
-                input_signal = obj.add_timing_jitter(input_signal);
-            end
-            
+            input_signal = obj.add_timing_jitter(input_signal);
+                 
             for i_ = 1:length(planes)
                 
                 [planes(i_).trace.last_received_data,...
@@ -121,7 +120,11 @@ classdef tower < handle
             % Generate jitter and shift. Note, it is not necessary to
             % simulate twosided jitter, as this only amounts to a shift of
             % the reference plane
-            timing_shift = randi([0 max_delay], 1, 1);
+            if strcmp(obj.jitter, 'on')
+                timing_shift = randi([0 max_delay], 1, 1);
+            else
+                timing_shift = 0;
+            end
             output_stream = circshift(input_stream, [0, timing_shift]);
             
         end
