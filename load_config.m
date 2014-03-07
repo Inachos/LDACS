@@ -5,6 +5,7 @@ function config = load_config()
   SNR_steps_dB      = 30;
   SNR_end_dB        = 30;
   
+  config.type               = 'transmit';
   config.max_iterations_per_snr = 1e6;
   config.target_nr_errors   = 100; % stop simulation after target number
   config.nr_planes          = 2;

@@ -11,6 +11,7 @@ classdef tower < handle
         nr_tiles_dc
         nr_tiles_rl
         max_delay
+        type
     end
     
     methods
@@ -21,7 +22,7 @@ classdef tower < handle
             obj.nr_tiles_dc             = config.nr_tiles_dc;
             obj.nr_tiles_rl             = config.nr_tiles_rl;
             obj.max_delay               = config.max_delay;
-
+            obj.type                    = config.type;
         end
         
         function [nr_attached] =  attach_plane(obj, plane_id)
@@ -43,11 +44,18 @@ classdef tower < handle
         function [received_datastream, sliced_signal] = receiver(obj, planes, snr_dB)
             % Calculate the sum signal as seen by the tower
             traces = [planes.trace];
+            if(strcmp(obj.type, 'received'))
             input_signal = sum(vertcat(traces.last_received_signal), 1);
             
             % Add additive white gaussian noise
-            [input_signal, noise_power] = obj.awgn_channel_response(input_signal, snr_dB);
-            
+            [input_signal, noise_power] = obj.awgn_channel_response(input_signal, snr_dB, obj.type);
+            else
+                input_signal_temp = vertcat(traces.last_received_signal);
+                for ii = 1:size(input_signal_temp, 1)
+                 [input_signal_temp(ii, :), noise_power]=   obj.awgn_channel_response(input_signal_temp(ii, :), snr_dB, obj.type);
+                end
+                input_signal = sum(input_signal_temp, 1);
+            end
             input_signal = obj.add_timing_jitter(input_signal);
                  
             for i_ = 1:length(planes)
@@ -86,7 +94,7 @@ classdef tower < handle
             
         end
         
-        function [output_stream, noise] = awgn_channel_response(obj, input_stream, snr_dB)
+        function [output_stream, noise] = awgn_channel_response(obj, input_stream, snr_dB, type)
             % Since the SNR is defined over the bit energy, we need the
             % fraction of the signal that actually carries bits.
             information_symbol_ratio = (38*2+48*4) * ... Nr data symbols per 2 tiles
@@ -96,8 +104,11 @@ classdef tower < handle
             
             % Right now, this is calculated as receive SNR. Therefore, The
             % received power is calculated:
+            if strcmp('received', type)
             av_power_input = norm(input_stream).^2/length(input_stream);
-            
+            else
+                av_power_input = 1;
+            end
             bits_per_symbol = log2(length(obj.mapping.chosen));
             
             noise = 10.^(-snr_dB./10) *... Noise power for 1 bit per symbol and unit transmit power
