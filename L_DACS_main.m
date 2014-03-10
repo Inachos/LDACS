@@ -1,10 +1,10 @@
 % L_DACS_main
         clear all
 close all
-kinds = {'awgn', 'pdp', 'jakes', 'full'};
-%kinds = {'awgn'}
-jitter = {'on', 'off'};
-%jitter = {'on'}
+%kinds = {'awgn', 'pdp', 'jakes', 'full'};
+kinds = {'full'}
+%jitter = {'on', 'off'};
+jitter = {'off'}
 for kin = 1:length(kinds)
     for jit = 1:length(jitter)
         clear planes

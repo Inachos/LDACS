@@ -1,0 +1,6 @@
+\contentsline {section}{\numberline {1}Problem statement}{3}
+\contentsline {section}{\numberline {2}Basic Approach}{3}
+\contentsline {section}{\numberline {3}Timing Recovery}{3}
+\contentsline {section}{\numberline {4}Channel Estimation}{3}
+\contentsline {subsection}{\numberline {4.1}Frequency Selective Case}{3}
+\contentsline {subsection}{\numberline {4.2}Doubly Selective Case}{3}
