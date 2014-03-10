@@ -1,7 +1,7 @@
 % L_DACS_main
         clear all
 close all
-kinds = {'jakes', 'full'};
+kinds = {'awgn', 'pdp', 'jakes', 'full'};
 %kinds = {'awgn'}
 jitter = {'on', 'off'};
 %jitter = {'on'}
