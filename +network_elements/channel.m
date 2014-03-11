@@ -10,6 +10,7 @@ classdef channel < handle
         small_scale_pointer
         small_scale_counter
         small_scale_len
+        plane_obj
     end
     
     methods
@@ -68,6 +69,9 @@ classdef channel < handle
             fading_coeff = obj.small_scale_fading(pointer:pointer+stream_len-1);
             obj.small_scale_pointer = pointer+stream_len;
             output_stream = input_stream.*fading_coeff;
+             if obj.plane_obj.MSE.track ==1
+                 obj.plane_obj.MSE.signal = fading_coeff;
+             end
         end
         
         function calculate_small_scale_fading(obj)

@@ -66,6 +66,9 @@ for i_ = 1:nr_tiles_per_dc+nr_tiles_rl
                 second_signal_no_cp = input_signal(12+5*75+offset:6*75+offset);
                 second_signal_fft = fft(second_signal_no_cp, plane.FFT_size)/sqrt(plane.FFT_size);
                 network_elements.tower.adapt_equalizer(plane, tower, current_signal_fft, second_signal_fft, side);
+                if tower.track_eq == 1 && plane.MSE.track==1
+                    update_MSE(plane,tower,offset);
+                end
             end
         else
             mask(plane.papr_positions_lower+33) = 0;
@@ -86,7 +89,16 @@ for i_ = 1:nr_tiles_per_dc+nr_tiles_rl
     end
 end
 end
-
+function update_MSE(plane, tower, offset)
+for ii=1:6
+    sig = plane.MSE.signal.*exp(1j*pi.*(1:length(plane.MSE.signal)));
+    slice = sig(12+offset-3+(ii-1)*75:offset-3+ii*75);
+    fading_fft(:, ii) = fft(slice, 64);
+end
+grid = fading_fft.^-1;
+squared_error = abs(tower.equalizer-grid).^2;
+plane.update_mse(squared_error);
+end
 % 
 % 
 % function adapt_equalizer(plane, tower, current_signal_fft, current_frame, side)

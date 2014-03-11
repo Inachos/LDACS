@@ -26,6 +26,7 @@ classdef plane < handle
         preamble
         nr_tiles_dc
         nr_tiles_rl
+        MSE
     end
     
     methods
@@ -34,6 +35,7 @@ classdef plane < handle
             obj.id                      = plane_id;
             tower.attach_plane(plane_id);
             obj.channel                 = network_elements.channel(config, tower, plane_id);
+            obj.channel.plane_obj       = obj;
             obj.trace                   = network_elements.plane_trace(config, plane_id);
             obj.data_generation         = config.data_generation;
             obj.data_length             = config.data_length;
@@ -51,8 +53,18 @@ classdef plane < handle
             obj.side                    = side;
             obj.preamble                = [];
             obj.channel.calculate_small_scale_fading;
-            obj.nr_tiles_dc             = config.nr_tiles_dc;
+            obj.nr_tiles_dc             = config.nr_tiles_dc; 
             obj.nr_tiles_rl             = config.nr_tiles_rl;
+            if strcmp('on', config.MSE)
+                 MSE.track = 1;
+                 MSE.grid  = zeros(64, 6);
+                 MSE.signal = 0;
+                 MSE.count = 0;
+            else
+                MSE.track = 0;
+            end
+            obj.MSE = MSE;
+            
           
         end
         
@@ -94,7 +106,13 @@ classdef plane < handle
         function calculate_channel(obj)
            obj.trace.last_received_signal = obj.channel.response(obj.trace.last_generated_signal); 
         end
-
+        function update_mse(obj, mse_grid)
+            N               = obj.MSE.count;
+            old_grid        = obj.MSE.grid;
+            new_grid        = old_grid*N/(N+1)+1/(N+1)*mse_grid;
+            obj.MSE.grid    = new_grid;
+            obj.MSE.count   = N+1;
+        end
     end
     
 end

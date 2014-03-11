@@ -12,6 +12,8 @@ classdef tower < handle
         nr_tiles_rl
         max_delay
         type
+        MSE_indicator
+        track_eq
     end
     
     methods
@@ -23,6 +25,8 @@ classdef tower < handle
             obj.nr_tiles_rl             = config.nr_tiles_rl;
             obj.max_delay               = config.max_delay;
             obj.type                    = config.type;
+            obj.MSE_indicator           = config.MSE_indicator;
+            obj.track_eq                = 0;
         end
         
         function [nr_attached] =  attach_plane(obj, plane_id)
@@ -43,6 +47,11 @@ classdef tower < handle
         
         function [received_datastream, sliced_signal] = receiver(obj, planes, snr_dB)
             % Calculate the sum signal as seen by the tower
+            if snr_dB == obj.MSE_indicator
+                obj.track_eq = 1;
+            else 
+                obj.track_eq = 0;
+            end
             traces = [planes.trace];
             if(strcmp(obj.type, 'received'))
             input_signal = sum(vertcat(traces.last_received_signal), 1);

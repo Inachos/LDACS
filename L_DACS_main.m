@@ -3,8 +3,8 @@
 close all
 %kinds = {'awgn', 'pdp', 'jakes', 'full'};
 kinds = {'full'}
-jitter = {'on', 'off'};
-%jitter = {'off'}
+%jitter = {'on', 'off'};
+jitter = {'off'}
 for kin = 1:length(kinds)
     for jit = 1:length(jitter)
         clear planes
@@ -21,8 +21,8 @@ for kin = 1:length(kinds)
         LDACS_config.timing_jitter  = jitter{jit};
         LDACS_config.error_limit    = 20000;
         LDACS_config.loop_threshold = 5000;
-        
-        LDACS_config
+        LDACS_config.MSE            = 'on';
+        LDACS_config.MSE_indicator  = 10;
         % Instance the elements of the network
         display('Instancing tower and scheduler...')
         tower               = network_elements.tower(LDACS_config);
@@ -90,7 +90,7 @@ for kin = 1:length(kinds)
             ylabel('BER')
             grid on
             hold on
-            
+            sim.eq_MSE = planes(pl_).MSE.grid;
             sim.plane = pl_;
             sim.x = SNR_steps_dB;
             sim.y = BER;
