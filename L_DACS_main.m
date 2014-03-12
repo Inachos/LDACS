@@ -2,16 +2,19 @@
         clear all
 close all
 %kinds = {'awgn', 'pdp', 'jakes', 'full'};
-kinds = {'full'}
-%jitter = {'on', 'off'};
-jitter = {'off'}
+kinds = {'jakes', 'full'}
+jitter = {'on', 'off'};
+%jitter = {'off'}
+factor = {1/2, 1/4, 1/8};
 for kin = 1:length(kinds)
     for jit = 1:length(jitter)
+        for fac = 1:length(factor);
         clear planes
         clear tower
         % Load the configuration
         display('Loading configuration')
         LDACS_config        = load_config();
+        LDACS_config.prefactor = factor{fac};
         target_nr_errors    = LDACS_config.target_nr_errors;
         max_iterations      = LDACS_config.max_iterations_per_snr;
         SNR_steps_dB        = LDACS_config.SNR_range_dB;
@@ -22,7 +25,7 @@ for kin = 1:length(kinds)
         LDACS_config.error_limit    = 20000;
         LDACS_config.loop_threshold = 5000;
         LDACS_config.MSE            = 'on';
-        LDACS_config.MSE_indicator  = 10;
+        LDACS_config.MSE_indicator  = 20;
         % Instance the elements of the network
         display('Instancing tower and scheduler...')
         tower               = network_elements.tower(LDACS_config);
@@ -98,10 +101,17 @@ for kin = 1:length(kinds)
             sim.kind  = LDACS_config.channel_kind;
             name = strcat(LDACS_config.channel_kind, '_jitter_', LDACS_config.timing_jitter);
             filename = strcat(name, '_plane_', num2str(pl_), '.mat');
-            full_filename = fullfile('results', filename);
+            
+            doppler = num2str(floor(LDACS_config.doppler_frequency*...
+                                LDACS_config.prefactor));
+            if ~exist(fullfile('results', doppler), 'dir')
+                mkdir(fullfile('results', doppler));
+            end
+            full_filename = fullfile('results', doppler, filename);
             save(full_filename, 'sim');
                         title(full_filename)
         end
         hold off
+        end
     end
 end

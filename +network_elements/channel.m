@@ -11,6 +11,7 @@ classdef channel < handle
         small_scale_counter
         small_scale_len
         plane_obj
+        prefactor
     end
     
     methods
@@ -20,6 +21,7 @@ classdef channel < handle
             obj.channel_kind = config.channel_kind;
             obj.small_scale_pointer = 1;
             obj.small_scale_counter = 1;
+            obj.prefactor           = config.prefactor;
         end
         
         function output_stream = dummy_channel_response(obj, input_stream)
@@ -75,11 +77,16 @@ classdef channel < handle
         end
         
         function calculate_small_scale_fading(obj)
-            full_filename = fullfile('channel_traces', strcat('rayleigh_plane_', num2str(obj.plane), 'nr', num2str(obj.small_scale_counter), '.mat'));
+            doppler = num2str(round(413*obj.prefactor));
+            dir =  fullfile('channel_traces', doppler);
+            if~exist(dir, 'dir')
+                mkdir(dir);
+            end
+            full_filename = fullfile('channel_traces', doppler, strcat('rayleigh_plane_', num2str(obj.plane), 'nr', num2str(obj.small_scale_counter), '.mat'));
             if exist(full_filename, 'file') == 2
                 load(full_filename, 'trace');
             else
-                trace = channel.jakes_2;
+                trace = channel.jakes_2(obj.prefactor);
                 save(full_filename, 'trace');
             end
             trace = trace*sqrt(length(trace))/norm(trace);

@@ -1,6 +1,6 @@
-function small_scale_fading_trace = jakes_2()
+function small_scale_fading_trace = jakes_2(prefactor)
 N = 20000;
-f_d = 2*413.001*1/4;
+f_d = 2*413.001*prefactor;
 % B1 = [0 33/64-floor(f_d+1)/625e3];
 % A1 = [0 0];
 % B2 = [33/64-floor(f_d)/625e3:1/625e4:33/64+floor(f_d)/625e3];

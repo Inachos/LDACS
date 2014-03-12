@@ -1,8 +1,8 @@
 function config = load_config()
   % Set variable data
 
-  SNR_start_dB      = 10;
-  SNR_steps_dB      = 5;
+  SNR_start_dB      = 0;
+  SNR_steps_dB      = 10;
   SNR_end_dB        = 20;
   
   config.type               = 'received';
@@ -14,6 +14,7 @@ function config = load_config()
   config.max_delay          = 10;
   % Fixed configuration                                     
   config.channel_kind       = 'jakes';
+  config.doppler_frequency  = 413; % Hz
   config.FFT_size           = 64;                                     
   config.CP_nr              = 11; %                                      
   config.subcarrier_nr      = 50;
