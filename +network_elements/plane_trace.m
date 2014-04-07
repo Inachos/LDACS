@@ -14,6 +14,8 @@ classdef plane_trace < handle
         rec_correct
         last_received_sliced_signal
         symbol_error_vector
+        papr_reduction
+        papr_vector
 
     end
     
@@ -27,7 +29,8 @@ classdef plane_trace < handle
             obj.last_received_signal    = [];
                     obj.last_received_sliced_signal = [];
                     obj.symbol_error_vector = zeros(length(config.SNR_range_dB), 2);
-
+            obj.papr_reduction          = [];
+            obj.papr_vector          = [];
         end
         
         function current_total_errors = update(obj, snr_idx)

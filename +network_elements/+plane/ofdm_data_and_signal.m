@@ -1,11 +1,12 @@
-function [ data_stream, ofdm_signal ] = ofdm_data_and_signal( nr_tiles__dc, nr_tiles_rl, plane, side)
+function [ data_stream, ofdm_signal, papr_reduction, papr_vector] = ofdm_data_and_signal( nr_tiles__dc, nr_tiles_rl, plane, side)
 data_stream             = [];
 ofdm_signal             = [];
 alphabet                = plane.mapping.chosen;
 P_l                     = [2 40 10 2 56 4 2 40 10 2 56 4];
 P_r                     = [4 56 2 10 40 2 4 56 2 10 40 2];
 frame                   = zeros(plane.FFT_size, 1);
-
+papr_reduction         = [];
+papr_vector             = [];
 % Side dependent stuff
 if strcmp(side, 'upper')
     P = P_r;
@@ -67,8 +68,9 @@ for i_ = 0:nr_tiles__dc+nr_tiles_rl
             % overlap
             ofdm_signal_temp    = sqrt(plane.FFT_size)*ifft(frame, plane.FFT_size).';
             if(j_ >1 ) && (j_< 6)
-            ofdm_signal_temp    = network_elements.plane.reduce_papr(ofdm_signal_temp, papr_position);
-            
+            [ofdm_signal_temp, reduction, papr]    = network_elements.plane.reduce_papr(ofdm_signal_temp, papr_position);
+            papr_reduction = [papr_reduction reduction];
+            papr_vector    = [papr_vector papr];
             end
 ofdm_signal         = append_symbol(ofdm_signal, ofdm_signal_temp);
             

@@ -1,14 +1,23 @@
 % L_DACS_main
         clear all
 close all
-%kinds = {'awgn', 'pdp', 'jakes', 'full'};
-kinds = {'jakes', 'full'}
+
+
+kinds = {'awgn', 'pdp','jakes', 'full'};
+% kinds = {'pdp', 'full'}
 jitter = {'on', 'off'};
-%jitter = {'off'}
-factor = {1/2, 1/4, 1/8};
+%jitter = {'on'}
+factor = {1, 2^-1, 2^-2, 2^-3, 2^-4};
+%factor = {2^-3};
 for kin = 1:length(kinds)
     for jit = 1:length(jitter)
-        for fac = 1:length(factor);
+       	switch kinds{kin}
+            case {'awgn', 'pdp'}
+            len = 1;
+            otherwise
+            len = length(factor);
+        end
+        for fac = 1:len
         clear planes
         clear tower
         % Load the configuration
@@ -24,7 +33,7 @@ for kin = 1:length(kinds)
         LDACS_config.timing_jitter  = jitter{jit};
         LDACS_config.error_limit    = 20000;
         LDACS_config.loop_threshold = 5000;
-        LDACS_config.MSE            = 'on';
+        LDACS_config.MSE            = 'off';
         LDACS_config.MSE_indicator  = 20;
         % Instance the elements of the network
         display('Instancing tower and scheduler...')
@@ -93,17 +102,25 @@ for kin = 1:length(kinds)
             ylabel('BER')
             grid on
             hold on
-            sim.eq_MSE = planes(pl_).MSE.grid;
+            %sim.eq_MSE = planes(pl_).MSE.grid;
             sim.plane = pl_;
             sim.x = SNR_steps_dB;
             sim.y = BER;
+            sim.papr_vector = cur_trace.papr_vector;
+            sim.papr_mean   = mean(sim.papr_vector);
+            sim.papr_reduction_vector = cur_trace.papr_reduction;
+            sim.papr_reduction_mean   = mean(sim.papr_reduction_vector);
             sim.jitter = LDACS_config.timing_jitter;
             sim.kind  = LDACS_config.channel_kind;
             name = strcat(LDACS_config.channel_kind, '_jitter_', LDACS_config.timing_jitter);
             filename = strcat(name, '_plane_', num2str(pl_), '.mat');
-            
+                   	switch kinds{kin}
+            case {'awgn', 'pdp'}
+              doppler = 'no_fading';
+                        otherwise
             doppler = num2str(floor(LDACS_config.doppler_frequency*...
                                 LDACS_config.prefactor));
+            end
             if ~exist(fullfile('results', doppler), 'dir')
                 mkdir(fullfile('results', doppler));
             end

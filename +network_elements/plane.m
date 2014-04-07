@@ -76,10 +76,12 @@ classdef plane < handle
                     obj.trace.last_generated_data = obj.generate_dummy_data;
                     obj.trace.last_generated_signal = obj.generate_dummy_signal(obj.trace.last_generated_data);
                 case 'ofdm'
-                    [obj.trace.last_generated_data, obj.trace.last_generated_signal] = ...
+                    [obj.trace.last_generated_data, obj.trace.last_generated_signal, papr_reduction, papr_vector] = ...
                         network_elements.plane.ofdm_data_and_signal(obj.nr_tiles_dc,...
                                                                     obj.nr_tiles_rl,...
                                                                     obj, obj.side);
+                    obj.trace.papr_reduction = [obj.trace.papr_reduction papr_reduction];
+                    obj.trace.papr_vector = [obj.trace.papr_vector papr_vector];
                 otherwise
                     error('OFDM data generation not implemented');
             end

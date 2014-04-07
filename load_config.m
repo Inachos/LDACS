@@ -2,8 +2,8 @@ function config = load_config()
   % Set variable data
 
   SNR_start_dB      = 0;
-  SNR_steps_dB      = 10;
-  SNR_end_dB        = 20;
+  SNR_steps_dB      = 15;
+  SNR_end_dB        = 30;
   
   config.type               = 'received';
   config.max_iterations_per_snr = 1e6;
@@ -26,8 +26,8 @@ function config = load_config()
       (SNR_end_dB-SNR_start_dB)/SNR_steps_dB:...
         SNR_end_dB;
   
-  config.error_limit        = 10000;
-  config.loop_threshold     = 10000;
+  config.error_limit        = 20000;
+  config.loop_threshold     = 20000;
   % misc
   config.CP_time            = 17.6e-6; % s
   config.t_sampling         = 1.6e-6; % s

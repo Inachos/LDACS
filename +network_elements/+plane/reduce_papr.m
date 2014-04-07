@@ -1,4 +1,4 @@
-function [ output_stream ] = reduce_papr( input_stream, papr_position)
+function [ output_stream, reduction, min_papr ] = reduce_papr( input_stream, papr_position)
     symbol_alph = [0 1 1j -1 -1j];
     frame = zeros(64, length(symbol_alph));
     frame(papr_position+33, :) = symbol_alph;
@@ -6,6 +6,7 @@ function [ output_stream ] = reduce_papr( input_stream, papr_position)
     candidates = repmat(input_stream, length(symbol_alph), 1)+time_papr;
     papr = get_papr(candidates);
     [min_papr, ind] = min(papr);
+    reduction = papr(1)-min_papr;
     output_stream = candidates(ind, :);
 
 end
