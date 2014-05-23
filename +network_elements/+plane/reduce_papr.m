@@ -1,5 +1,5 @@
 function [ output_stream, reduction, min_papr ] = reduce_papr( input_stream, papr_position)
-    symbol_alph = [0 1 1j -1 -1j];
+    symbol_alph = [0 exp(1j*2*pi/8*(0:7))];
     frame = zeros(64, length(symbol_alph));
     frame(papr_position+33, :) = symbol_alph;
     time_papr = sqrt(64)*ifft(frame,64).';
