@@ -2,8 +2,8 @@ function config = load_config()
   % Set variable data
 
   SNR_start_dB      = 0;
-  SNR_steps_dB      = 15;
-  SNR_end_dB        = 30;
+  SNR_steps_dB      = 10;
+  SNR_end_dB        = 20;
   
   config.type               = 'received';
   config.max_iterations_per_snr = 1e6;

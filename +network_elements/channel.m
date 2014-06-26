@@ -19,8 +19,15 @@ classdef channel < handle
             obj.tower = tower;
             obj.plane = plane_id;
             obj.channel_kind = config.channel_kind;
-            obj.small_scale_pointer = 1;
-            obj.small_scale_counter = 1;
+            switch obj.channel_kind
+                case {'full'}
+                    obj.small_scale_pointer = ones(1,3);
+                    obj.small_scale_len = zeros(1,3);
+                otherwise
+                    obj.small_scale_pointer = 1;
+                    obj.small_scale_len = 0;
+            end
+            obj.small_scale_counter =0;
             obj.prefactor           = config.prefactor;
         end
         
@@ -35,15 +42,15 @@ classdef channel < handle
             switch obj.channel_kind;
                 case {'dummy', 'awgn'}
                     output_stream = obj.dummy_channel_response(input_stream);
-
+                    
                 case 'pdp'
-                     output_stream = filter(obj.exponential_pdp,1, input_stream);
+                    output_stream = filter(obj.exponential_pdp,1, input_stream);
                 case 'jakes'
-                     output_stream = obj.jakes(input_stream);
+                    output_stream = obj.jakes(input_stream, 1);
                 case 'full'
-                    output_stream = conv(obj.jakes(input_stream), obj.exponential_pdp);
+                    output_stream = obj.jakes(input_stream, obj.exponential_pdp);
                 case 'timing jitter'
-                   
+                    
                     output_stream = obj.dummy_channel_response(input_stream);
                 otherwise
                     error('not implemented')
@@ -51,32 +58,40 @@ classdef channel < handle
         end
         
         function pdp  = exponential_pdp(obj)
-           tau_max = 2;
-           pdp = exp(-(0:tau_max));
-           pdp = sqrt(pdp.^2/norm(pdp)^2);
+            tau_max = 2;
+            pdp = exp(-(0:tau_max));
+            pdp = sqrt(pdp.^2/norm(pdp)^2);
             
         end
         
-        function output_stream = jakes(obj, input_stream)
+        function output_stream = jakes(obj, input_stream, channel_taps)
             stream_len = length(input_stream);
-            
+            nr_taps = length(channel_taps);
             pointer = obj.small_scale_pointer;
-            if pointer+5000>obj.small_scale_len
-                obj.small_scale_counter = obj.small_scale_counter + 1;
-                fprintf('*')
-                obj.calculate_small_scale_fading;
-                obj.small_scale_pointer = 1;
-                pointer = 1;
+            output_stream =  [zeros(size(input_stream)) zeros(1, nr_taps-1)];
+            for ii = 1:nr_taps
+                
+                if pointer(ii)+5000>obj.small_scale_len(ii)
+                    obj.small_scale_counter = obj.small_scale_counter + 1;
+                    fprintf('*')
+                    obj.calculate_small_scale_fading(ii);
+                    obj.small_scale_pointer(ii) = 1;
+                    pointer(ii) = 1;
+                end
+                fading_coeff(ii, :) = obj.small_scale_fading(ii, pointer:pointer+stream_len-1);
+                obj.small_scale_pointer(ii) = pointer(ii)+stream_len;
+                output_stream = output_stream + [zeros(1, ii-1) channel_taps(ii)*input_stream.*fading_coeff(ii,:) zeros(1,nr_taps-ii)];
+                
             end
-            fading_coeff = obj.small_scale_fading(pointer:pointer+stream_len-1);
-            obj.small_scale_pointer = pointer+stream_len;
-            output_stream = input_stream.*fading_coeff;
-             if obj.plane_obj.MSE.track ==1
-                 obj.plane_obj.MSE.signal = fading_coeff;
-             end
+            
+            
+            
+            if obj.plane_obj.MSE.track ==1
+                obj.plane_obj.MSE.signal = fading_coeff;
+            end
         end
         
-        function calculate_small_scale_fading(obj)
+        function calculate_small_scale_fading(obj, trace_nr)
             doppler = num2str(round(413*obj.prefactor));
             dir =  fullfile('channel_traces', doppler);
             if~exist(dir, 'dir')
@@ -90,10 +105,10 @@ classdef channel < handle
                 save(full_filename, 'trace');
             end
             trace = trace*sqrt(length(trace))/norm(trace);
-            obj.small_scale_fading = trace;
-            obj.small_scale_len    = length(trace);
+            obj.small_scale_fading(trace_nr, :) = trace;
+            obj.small_scale_len(trace_nr)    = length(trace);
         end
-            
+        
     end
     
 end

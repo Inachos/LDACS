@@ -4,9 +4,9 @@ close all
 
 
 kinds = {'awgn', 'pdp','jakes', 'full'};
-% kinds = {'pdp', 'full'}
+%kinds = {'full'}
 jitter = {'on', 'off'};
-%jitter = {'on'}
+%jitter = {'off'}
 factor = {1, 2^-1, 2^-2, 2^-3, 2^-4};
 %factor = {2^-3};
 for kin = 1:length(kinds)

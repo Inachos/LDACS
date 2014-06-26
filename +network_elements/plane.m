@@ -52,7 +52,7 @@ classdef plane < handle
             obj.guard_lower             = config.guard_lower;
             obj.side                    = side;
             obj.preamble                = [];
-            obj.channel.calculate_small_scale_fading;
+            %obj.channel.calculate_small_scale_fading;
             obj.nr_tiles_dc             = config.nr_tiles_dc; 
             obj.nr_tiles_rl             = config.nr_tiles_rl;
             if strcmp('on', config.MSE)
