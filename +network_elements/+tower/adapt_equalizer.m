@@ -1,7 +1,18 @@
 function adapt_equalizer(plane, tower, current_signal_fft, second_signal_fft, side)
-
-% Construct the pilots as they should be
-
+%     This file is part of L-DACS simulator.
+% 
+%     L-DACS simulator is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     L-DACS simulator is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 P_l         = [2 40 10 2 56 4 2 40 10 2 56 4];
 P_r         = [4 56 2 10 40 2 4 56 2 10 40 2];
 frame       = zeros(plane.FFT_size, 1);
