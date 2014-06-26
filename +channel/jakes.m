@@ -1,6 +1,19 @@
 function small_scale_fading_trace = jakes()
-% This function creates a fading trace of fixed length, according to the
-% jakes psd.
+%     This file is part of L-DACS simulator.
+% 
+%      L-DACS simulator is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%      L-DACS simulator is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
+
 
 % First, white noise of unit power is calculated
 noise_white = normrnd(0, 1/sqrt(2), 1, 10000)+1j*normrnd(0, 1/sqrt(2), 1, 10000);

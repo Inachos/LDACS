@@ -12,7 +12,7 @@ function [ planes ] = planes_factory(config, tower)
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
     for planes_idx = 1:config.nr_planes
         if 1 == mod(planes_idx, 2)
             side = 'upper';

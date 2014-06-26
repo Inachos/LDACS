@@ -21,7 +21,7 @@ function [ output_stream, reduction, min_papr ] = reduce_papr( input_stream, pap
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
 end
 
 function [papr] = get_papr(input_stream)

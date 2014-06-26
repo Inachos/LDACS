@@ -13,7 +13,7 @@ N = 20000;
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
 f_d = 2*413.001*prefactor;
 % B1 = [0 33/64-floor(f_d+1)/625e3];
 % A1 = [0 0];

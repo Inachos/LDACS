@@ -12,7 +12,7 @@ function config = load_config()
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
 
   SNR_start_dB      = 0;
   SNR_steps_dB      = 10;

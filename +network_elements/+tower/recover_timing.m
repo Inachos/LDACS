@@ -14,7 +14,7 @@ function timing_correction = recover_timing(input_stream)
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
 if 1
     search_offset       = 3+75*[1 2 3 4 5]; % where to start looking
     time_offset         = 32;

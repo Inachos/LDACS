@@ -12,7 +12,7 @@ function adapt_equalizer(plane, tower, current_signal_fft, second_signal_fft, si
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
 P_l         = [2 40 10 2 56 4 2 40 10 2 56 4];
 P_r         = [4 56 2 10 40 2 4 56 2 10 40 2];
 frame       = zeros(plane.FFT_size, 1);

@@ -17,7 +17,7 @@ function [received_datastream, sliced_signal ] = ofdm_receiver( ...
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%     along with  L-DACS simulator.  If not, see <http://www.gnu.org/licenses/>.
 t = 1:length(input_signal);
 sig_baseband = input_signal;
 input_signal = input_signal.*exp(1j*pi.*t);
